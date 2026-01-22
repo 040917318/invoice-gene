@@ -1,0 +1,5 @@
+{
+  "name": "SeaFreight Pro Invoicer",
+  "description": "A professional invoicing application tailored for the sea freight industry with multi-currency support (GHS/USD), CBM tracking, and AI-powered cargo descriptions.",
+  "requestFramePermissions": []
+}
