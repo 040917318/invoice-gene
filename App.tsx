@@ -48,19 +48,32 @@ export default function App() {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          // Simple validation to ensure critical arrays exist to prevent crashes
-          // if local storage has old or corrupted data
+          
           if (parsed && Array.isArray(parsed.items)) {
+            // Sanitize items to ensure numeric fields are actually numbers
+            // This prevents crashes if local storage has "null" or "string" in number fields
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const sanitizedItems = parsed.items.map((item: any) => ({
+              ...item,
+              amount: Number(item.amount) || 0,
+              rate: Number(item.rate) || 0,
+              qty: Number(item.qty) || 0,
+              cbm: Number(item.cbm) || 0,
+              weight: Number(item.weight) || 0
+            }));
+
             // Merge with initial structure to ensure new fields are present
             return {
               ...INITIAL_DATA,
               ...parsed,
               company: { ...INITIAL_DATA.company, ...parsed.company },
               customer: { ...INITIAL_DATA.customer, ...parsed.customer },
+              items: sanitizedItems
             };
           }
         } catch (e) {
           console.error("Failed to parse saved invoice data", e);
+          // If parsing fails, we fallback to INITIAL_DATA
         }
       }
     }
