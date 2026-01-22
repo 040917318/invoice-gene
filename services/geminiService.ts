@@ -1,5 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
 
+declare const process: {
+  env: {
+    API_KEY?: string;
+  }
+};
+
 const apiKey = process.env.API_KEY || '';
 
 // Initialize Gemini Client
