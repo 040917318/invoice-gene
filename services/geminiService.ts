@@ -1,17 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
 
-declare const process: {
-  env: {
-    API_KEY?: string;
-  }
-};
-
+// Ensure we access process.env.API_KEY safely.
+// Vite replaces `process.env.API_KEY` with the string value at build time.
+// We default to an empty string to prevent runtime errors if the key is missing.
 const apiKey = process.env.API_KEY || '';
 
 // Initialize Gemini Client
 // Note: In a real production app, you might proxy this through a backend to protect the key,
 // or require the user to input their key if it's a BYOK app.
-// For this demo, we assume process.env.API_KEY is available as per instructions.
 const ai = new GoogleGenAI({ apiKey });
 
 export const generateCargoDescription = async (rawInput: string): Promise<string> => {

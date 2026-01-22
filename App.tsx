@@ -47,7 +47,18 @@ export default function App() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         try {
-          return JSON.parse(saved);
+          const parsed = JSON.parse(saved);
+          // Simple validation to ensure critical arrays exist to prevent crashes
+          // if local storage has old or corrupted data
+          if (parsed && Array.isArray(parsed.items)) {
+            // Merge with initial structure to ensure new fields are present
+            return {
+              ...INITIAL_DATA,
+              ...parsed,
+              company: { ...INITIAL_DATA.company, ...parsed.company },
+              customer: { ...INITIAL_DATA.customer, ...parsed.customer },
+            };
+          }
         } catch (e) {
           console.error("Failed to parse saved invoice data", e);
         }
