@@ -38,3 +38,43 @@ export const generateCargoDescription = async (rawInput: string): Promise<string
     return rawInput; // Fallback to original text on error
   }
 };
+
+export const generateNextInvoiceNumber = async (currentNumber: string): Promise<string> => {
+  if (!apiKey) {
+    // Basic fallback if no API key available: increment last number found
+    const match = currentNumber.match(/(\d+)$/);
+    if (match) {
+      const num = parseInt(match[1]);
+      const len = match[1].length;
+      const next = (num + 1).toString().padStart(len, '0');
+      return currentNumber.replace(match[1], next);
+    }
+    return currentNumber + "-NEXT";
+  }
+
+  try {
+    const prompt = `
+      You are an invoicing assistant.
+      The previous invoice number was "${currentNumber}".
+      Generate the next unique and sequential invoice number.
+      
+      Rules:
+      1. If the number contains a year (e.g., 2023, 24), update it to the current year (${new Date().getFullYear()}) if necessary.
+      2. If updating the year, reset the sequence number to 001 or similar, unless the format implies a continuous sequence.
+      3. If no year change is needed, simply increment the sequence.
+      4. Maintain the exact same style/format (separators, prefixes).
+      
+      Output ONLY the new invoice number string.
+    `;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+    });
+
+    return response.text?.trim() || currentNumber;
+  } catch (error) {
+    console.error("Error generating invoice number:", error);
+    return currentNumber;
+  }
+};

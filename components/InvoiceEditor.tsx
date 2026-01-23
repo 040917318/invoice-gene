@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Trash2, Upload, Wand2, Loader2, Save, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, Upload, Wand2, Loader2, Save, RefreshCw } from 'lucide-react';
 import { InvoiceData, Currency, InvoiceItem } from '../types';
-import { generateCargoDescription } from '../services/geminiService';
+import { generateCargoDescription, generateNextInvoiceNumber } from '../services/geminiService';
 
 interface InvoiceEditorProps {
   data: InvoiceData;
@@ -12,6 +12,7 @@ const STORAGE_KEY = 'seafreight_invoice_data';
 
 export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) => {
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [isGeneratingInvNum, setIsGeneratingInvNum] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'modified'>('saved');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
@@ -118,6 +119,19 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
     }
   };
 
+  const handleGenerateNextInvoiceNumber = async () => {
+    if (!data.invoiceNumber) return;
+    setIsGeneratingInvNum(true);
+    try {
+      const nextNum = await generateNextInvoiceNumber(data.invoiceNumber);
+      onChange({ ...data, invoiceNumber: nextNum });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsGeneratingInvNum(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 space-y-8 h-full overflow-y-auto">
       {/* Header Section */}
@@ -146,12 +160,24 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-600 mb-1">Invoice Number</label>
-            <input
-              type="text"
-              value={data.invoiceNumber}
-              onChange={(e) => onChange({ ...data, invoiceNumber: e.target.value })}
-              className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={data.invoiceNumber}
+                onChange={(e) => onChange({ ...data, invoiceNumber: e.target.value })}
+                className="w-full p-2 pr-10 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="e.g. INV-001"
+              />
+              <button
+                onClick={handleGenerateNextInvoiceNumber}
+                disabled={isGeneratingInvNum}
+                className="absolute right-1 top-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 p-1.5 rounded transition-colors"
+                title="Generate Next Sequence (AI)"
+              >
+                {isGeneratingInvNum ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1">Click icon to auto-generate next number</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-600 mb-1">Currency</label>
