@@ -91,7 +91,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <span className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-blue-500">
-              SeaFreight Pro
+              InvoiceGen
             </span>
             <span className="text-[10px] sm:text-xs text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded">BETA</span>
           </div>
