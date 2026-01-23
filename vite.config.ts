@@ -8,9 +8,9 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       // Specific replacement for the API Key
-      'process.env.API_KEY': JSON.stringify(env.API_KEY),
+      // Use empty string fallback so the code is valid even if built without the key
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || ''),
       // Polyfill process.env to an empty object to prevent "process is not defined" crashes
-      // in libraries that might check process.env without a specific key.
       'process.env': {}
     }
   };

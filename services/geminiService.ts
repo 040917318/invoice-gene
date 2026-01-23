@@ -1,13 +1,19 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Ensure we access process.env.API_KEY safely.
-// Vite replaces `process.env.API_KEY` with the string value at build time.
-// We default to an empty string to prevent runtime errors if the key is missing.
-const apiKey = process.env.API_KEY || '';
+// Declare global extension for window to support runtime injection
+declare global {
+  interface Window {
+    RUNTIME_API_KEY?: string;
+  }
+}
+
+// 1. Check window.RUNTIME_API_KEY (Injected by server.js in Cloud Run)
+// 2. Fallback to process.env.API_KEY (Injected by Vite during local dev)
+const apiKey = (typeof window !== 'undefined' && window.RUNTIME_API_KEY) 
+  ? window.RUNTIME_API_KEY 
+  : (process.env.API_KEY || '');
 
 // Initialize Gemini Client
-// Note: In a real production app, you might proxy this through a backend to protect the key,
-// or require the user to input their key if it's a BYOK app.
 const ai = new GoogleGenAI({ apiKey });
 
 export const generateCargoDescription = async (rawInput: string): Promise<string> => {
