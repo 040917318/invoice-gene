@@ -14,7 +14,6 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [isGeneratingInvNum, setIsGeneratingInvNum] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'modified'>('saved');
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Auto-save Logic
   const saveToStorage = useCallback((currentData: InvoiceData) => {
@@ -23,7 +22,6 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(currentData));
       setTimeout(() => {
         setSaveStatus('saved');
-        setLastSaved(new Date());
       }, 500);
     } catch (e) {
       console.error("Failed to save to localStorage", e);
@@ -79,6 +77,9 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
         const updatedItem = { ...item, [field]: value };
         
         // Auto-calculate amount if qty or rate changes
+        // Only if amount hasn't been manually edited? 
+        // For this requirement, we stick to standard: Qty/Rate updates Amount. 
+        // Direct Amount edit simply updates Amount.
         if (field === 'qty' || field === 'rate') {
           const q = Number(updatedItem.qty);
           const r = Number(updatedItem.rate);
@@ -425,9 +426,13 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
                  </div>
                  <div>
                      <label className="text-xs font-semibold text-slate-500 uppercase">Amount</label>
-                     <div className="w-full p-2 bg-slate-200 rounded text-slate-600 font-mono text-right overflow-hidden text-ellipsis">
-                       {Number(item.amount).toFixed(2)}
-                     </div>
+                     <input
+                       type="number"
+                       step="0.01"
+                       value={item.amount}
+                       onChange={(e) => updateItem(item.id, 'amount', e.target.value)}
+                       className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-right font-mono"
+                     />
                  </div>
               </div>
             </div>
