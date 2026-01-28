@@ -77,8 +77,17 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
     const newItems = data.items.map(item => {
       if (item.id === id) {
         const updatedItem = { ...item, [field]: value };
+        
+        // Auto-calculate amount if qty or rate changes
         if (field === 'qty' || field === 'rate') {
-          updatedItem.amount = updatedItem.qty * updatedItem.rate;
+          const q = Number(updatedItem.qty);
+          const r = Number(updatedItem.rate);
+          // Only calculate if both result in valid numbers, otherwise leave as is or 0
+          if (!isNaN(q) && !isNaN(r)) {
+            updatedItem.amount = q * r;
+          } else {
+            updatedItem.amount = 0;
+          }
         }
         return updatedItem;
       }
@@ -368,7 +377,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
                     <input
                       type="number"
                       value={item.weight}
-                      onChange={(e) => updateItem(item.id, 'weight', parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateItem(item.id, 'weight', e.target.value)}
                       className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                   </div>
@@ -389,9 +398,9 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
                     <label className="text-xs font-semibold text-slate-500 uppercase">CBM (Vol)</label>
                     <input
                       type="number"
-                      step="0.01"
+                      step="0.0001"
                       value={item.cbm}
-                      onChange={(e) => updateItem(item.id, 'cbm', parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateItem(item.id, 'cbm', e.target.value)}
                       className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                  </div>
@@ -400,7 +409,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
                     <input
                       type="number"
                       value={item.qty}
-                      onChange={(e) => updateItem(item.id, 'qty', parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateItem(item.id, 'qty', e.target.value)}
                       className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                  </div>
@@ -410,14 +419,14 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
                       type="number"
                       step="0.01"
                       value={item.rate}
-                      onChange={(e) => updateItem(item.id, 'rate', parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateItem(item.id, 'rate', e.target.value)}
                       className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                  </div>
                  <div>
                      <label className="text-xs font-semibold text-slate-500 uppercase">Amount</label>
                      <div className="w-full p-2 bg-slate-200 rounded text-slate-600 font-mono text-right overflow-hidden text-ellipsis">
-                       {item.amount.toFixed(2)}
+                       {Number(item.amount).toFixed(2)}
                      </div>
                  </div>
               </div>

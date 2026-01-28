@@ -55,16 +55,16 @@ export default function App() {
           const parsed = JSON.parse(saved);
           
           if (parsed && Array.isArray(parsed.items)) {
-            // Sanitize items to ensure numeric fields are actually numbers
-            // This prevents crashes if local storage has "null" or "string" in number fields
+            // No need to strictly cast to Number() here anymore as types allow string | number
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const sanitizedItems = parsed.items.map((item: any) => ({
               ...item,
-              amount: Number(item.amount) || 0,
-              rate: Number(item.rate) || 0,
-              qty: Number(item.qty) || 0,
-              cbm: Number(item.cbm) || 0,
-              weight: Number(item.weight) || 0
+              // Ensure fields exist, but allow them to be whatever was saved
+              amount: item.amount ?? 0,
+              rate: item.rate ?? 0,
+              qty: item.qty ?? 0,
+              cbm: item.cbm ?? 0,
+              weight: item.weight ?? 0
             }));
 
             // Merge with initial structure to ensure new fields are present

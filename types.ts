@@ -23,12 +23,12 @@ export interface InvoiceItem {
   id: string;
   description: string;
   dimensions: string; // e.g., 120x80x100 cm
-  weight: number; // e.g., kg
+  weight: number | string; // e.g., kg
   unit: string; // e.g., Pcs, Pallets, Boxes
-  cbm: number; // Cubic Meters
-  qty: number;
-  rate: number;
-  amount: number;
+  cbm: number | string; // Cubic Meters
+  qty: number | string;
+  rate: number | string;
+  amount: number | string;
 }
 
 export interface InvoiceData {

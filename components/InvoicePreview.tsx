@@ -10,11 +10,11 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
   const currencySymbol = data.currency === Currency.GHS ? '₵' : '$';
 
   const subtotal = useMemo(() => {
-    return data.items.reduce((acc, item) => acc + item.amount, 0);
+    return data.items.reduce((acc, item) => acc + (Number(item.amount) || 0), 0);
   }, [data.items]);
 
   const totalCbm = useMemo(() => {
-    return data.items.reduce((acc, item) => acc + (item.cbm || 0), 0);
+    return data.items.reduce((acc, item) => acc + (Number(item.cbm) || 0), 0);
   }, [data.items]);
 
   const total = subtotal;
@@ -104,10 +104,10 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
                       </td>
                       <td className="p-3 text-slate-600 text-center text-xs uppercase">{item.unit}</td>
                       <td className="p-3 text-slate-600 text-center">{item.qty}</td>
-                      <td className="p-3 text-slate-600 text-center">{item.weight > 0 ? `${item.weight} kg` : '-'}</td>
-                      <td className="p-3 text-slate-600 text-center">{item.cbm.toFixed(2)}</td>
-                      <td className="p-3 text-slate-600 text-right">{currencySymbol}{item.rate.toFixed(2)}</td>
-                      <td className="p-3 text-slate-900 font-bold text-right">{currencySymbol}{item.amount.toFixed(2)}</td>
+                      <td className="p-3 text-slate-600 text-center">{Number(item.weight) > 0 ? `${Number(item.weight)} kg` : '-'}</td>
+                      <td className="p-3 text-slate-600 text-center">{Number(item.cbm).toFixed(2)}</td>
+                      <td className="p-3 text-slate-600 text-right">{currencySymbol}{Number(item.rate).toFixed(2)}</td>
+                      <td className="p-3 text-slate-900 font-bold text-right">{currencySymbol}{Number(item.amount).toFixed(2)}</td>
                    </tr>
                 ))}
                 {data.items.length === 0 && (
