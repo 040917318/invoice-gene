@@ -22,7 +22,6 @@ export interface CustomerDetails {
 export interface InvoiceItem {
   id: string;
   description: string;
-  dimensions: string; // e.g., 120x80x100 cm
   weight: number | string; // e.g., kg
   unit: string; // e.g., Pcs, Pallets, Boxes
   cbm: number | string; // Cubic Meters

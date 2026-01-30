@@ -100,7 +100,6 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
                    <tr key={item.id}>
                       <td className="p-3">
                         <div className="text-slate-800 font-medium">{item.description}</div>
-                        {item.dimensions && <div className="text-xs text-slate-500 mt-1">Dims: {item.dimensions}</div>}
                       </td>
                       <td className="p-3 text-slate-600 text-center text-xs uppercase">{item.unit}</td>
                       <td className="p-3 text-slate-600 text-center">{item.qty}</td>

@@ -29,7 +29,6 @@ const INITIAL_DATA: InvoiceData = {
     {
       id: '1',
       description: '20ft Container - General Goods',
-      dimensions: '6.06m x 2.44m x 2.59m',
       weight: 2200,
       unit: 'Container',
       cbm: 33.2,

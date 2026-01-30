@@ -10,6 +10,52 @@ interface InvoiceEditorProps {
 
 const STORAGE_KEY = 'seafreight_invoice_data';
 
+// --- Predefined Options Constants ---
+const SUGGESTED_DESCRIPTIONS = [
+  "Ocean Freight Charges",
+  "20' Standard Container Shipment",
+  "40' Standard Container Shipment",
+  "40' High Cube Container Shipment",
+  "LCL Consolidated Cargo",
+  "Terminal Handling Charges (THC)",
+  "Documentation Fee",
+  "Bill of Lading Fee",
+  "Customs Clearance",
+  "Inland Haulage / Transport",
+  "Port Congestion Surcharge",
+  "Bunker Adjustment Factor (BAF)",
+  "Currency Adjustment Factor (CAF)",
+  "Electronic Cargo Tracking Note (ECTN)"
+];
+
+const SUGGESTED_UNITS = [
+  "Container", 
+  "20' CNTR", 
+  "40' CNTR", 
+  "40' HC", 
+  "CBM", 
+  "Kgs", 
+  "MT", 
+  "Pcs", 
+  "Pkgs", 
+  "Pallets", 
+  "Boxes", 
+  "Lump Sum",
+  "Shipment"
+];
+
+const SUGGESTED_CBM = [
+  { val: "33.2", label: "20ft Std" },
+  { val: "67.7", label: "40ft Std" },
+  { val: "76.4", label: "40ft HC" },
+  { val: "1.0", label: "Min LCL" }
+];
+
+const SUGGESTED_RATES = [
+  "50.00", "100.00", "150.00", "250.00", "500.00", 
+  "1200.00", "1800.00", "2500.00", "3500.00", "4500.00"
+];
+
 export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) => {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [isGeneratingInvNum, setIsGeneratingInvNum] = useState(false);
@@ -76,19 +122,17 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
       if (item.id === id) {
         const updatedItem = { ...item, [field]: value };
         
-        // Auto-calculate amount if qty or rate changes
-        // Only if amount hasn't been manually edited? 
-        // For this requirement, we stick to standard: Qty/Rate updates Amount. 
-        // Direct Amount edit simply updates Amount.
-        if (field === 'qty' || field === 'rate') {
-          const q = Number(updatedItem.qty);
-          const r = Number(updatedItem.rate);
-          // Only calculate if both result in valid numbers, otherwise leave as is or 0
-          if (!isNaN(q) && !isNaN(r)) {
-            updatedItem.amount = q * r;
-          } else {
-            updatedItem.amount = 0;
-          }
+        // Auto-calculate amount if cbm, qty or rate changes
+        if (field === 'cbm' || field === 'qty' || field === 'rate') {
+          const c = parseFloat(String(updatedItem.cbm)) || 0;
+          const q = parseFloat(String(updatedItem.qty)) || 0;
+          const r = parseFloat(String(updatedItem.rate)) || 0;
+          
+          // Formula: Amount = CBM * Qty * Rate
+          // Fallback: If CBM is 0 (e.g., flat fees), treat it as 1 to ensure calculation works for non-volumetric items.
+          const effectiveCbm = c === 0 ? 1 : c;
+          
+          updatedItem.amount = effectiveCbm * q * r;
         }
         return updatedItem;
       }
@@ -101,7 +145,6 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
     const newItem: InvoiceItem = {
       id: Math.random().toString(36).substr(2, 9),
       description: '',
-      dimensions: '',
       weight: 0,
       unit: 'pcs',
       cbm: 0,
@@ -144,6 +187,28 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 space-y-8 h-full overflow-y-auto">
+      
+      {/* Datalists for Autocomplete Options */}
+      <datalist id="list-descriptions">
+        {SUGGESTED_DESCRIPTIONS.map((opt) => <option key={opt} value={opt} />)}
+      </datalist>
+      <datalist id="list-units">
+        {SUGGESTED_UNITS.map((opt) => <option key={opt} value={opt} />)}
+      </datalist>
+      <datalist id="list-cbm">
+        {SUGGESTED_CBM.map((opt) => <option key={opt.val} value={opt.val}>{opt.label}</option>)}
+      </datalist>
+      <datalist id="list-rates">
+        {SUGGESTED_RATES.map((opt) => <option key={opt} value={opt} />)}
+      </datalist>
+      <datalist id="list-qty">
+         <option value="1" />
+         <option value="2" />
+         <option value="3" />
+         <option value="10" />
+         <option value="100" />
+      </datalist>
+
       {/* Header Section */}
       <div>
         <div className="flex justify-between items-start mb-4">
@@ -344,6 +409,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
                    <label className="text-xs font-semibold text-slate-500 uppercase">Description</label>
                    <div className="flex gap-2">
                       <input
+                        list="list-descriptions"
                         type="text"
                         placeholder="e.g. 20ft Container"
                         value={item.description}
@@ -362,17 +428,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 mb-3">
-                  <div className="col-span-3 sm:col-span-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase">Dimensions</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 10x10x10cm"
-                      value={item.dimensions}
-                      onChange={(e) => updateItem(item.id, 'dimensions', e.target.value)}
-                      className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-3 mb-3">
                   <div className="col-span-1">
                     <label className="text-xs font-semibold text-slate-500 uppercase">Weight</label>
                     <input
@@ -382,9 +438,10 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
                       className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                   </div>
-                  <div className="col-span-2 sm:col-span-1">
+                  <div className="col-span-1">
                     <label className="text-xs font-semibold text-slate-500 uppercase">Unit</label>
                     <input
+                      list="list-units"
                       type="text"
                       placeholder="e.g. Pcs"
                       value={item.unit}
@@ -398,6 +455,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
                  <div>
                     <label className="text-xs font-semibold text-slate-500 uppercase">CBM (Vol)</label>
                     <input
+                      list="list-cbm"
                       type="number"
                       step="0.0001"
                       value={item.cbm}
@@ -408,6 +466,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
                  <div>
                     <label className="text-xs font-semibold text-slate-500 uppercase">Qty</label>
                     <input
+                      list="list-qty"
                       type="number"
                       value={item.qty}
                       onChange={(e) => updateItem(item.id, 'qty', e.target.value)}
@@ -417,6 +476,7 @@ export const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ data, onChange }) 
                  <div>
                     <label className="text-xs font-semibold text-slate-500 uppercase">Rate</label>
                     <input
+                      list="list-rates"
                       type="number"
                       step="0.01"
                       value={item.rate}
